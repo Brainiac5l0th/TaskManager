@@ -18,7 +18,7 @@ const taskRouter = express.Router();
 taskRouter.get("/", getTasks);
 
 //post a task
-taskRouter.post("/", postTasks);
+taskRouter.post("/new", postTasks);
 
 //get a task by id
 // taskRouter.post("/id/:id");

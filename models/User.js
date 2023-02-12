@@ -17,11 +17,11 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    username: {
+    email: {
       type: String,
       required: true,
     },
-    email: {
+    phone: {
       type: String,
       required: true,
     },
@@ -33,7 +33,7 @@ const userSchema = new mongoose.Schema(
       type: String,
     },
     role: {
-      type: Array,
+      type: String,
       enum: ["Admin", "Manager", "Employee"],
       default: "Employee",
     },

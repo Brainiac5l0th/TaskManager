@@ -1,8 +1,8 @@
 /*
  *
  *
- ------->Title: 
- ->Description: 
+ ------->Title: Task Controller
+ ->Description: this is to handle all req and response accordingly for /tasks route
  ------>Author: Shawon Talukder
  -------->Date: 02/11/2023
  *
@@ -18,11 +18,11 @@ taskController.getTasks = async (req, res) => {
   try {
     const tasks = await Task.find().select(" -__v").exec();
     if (tasks.length) {
-      res
+      return res
         .status(200)
         .json({ message: "Success!", length: tasks.length, data: tasks });
     } else {
-      res.status(200).json({ message: "No Tasks Yet!" });
+      return res.status(204).json({ message: "No Tasks Yet!" });
     }
   } catch (error) {
     res.status(500).json({
@@ -39,7 +39,7 @@ taskController.postTasks = async (req, res) => {
     const task = new Task(taskObject);
     await task.save();
     if (task) {
-      res.status(201).json({ message: `Task created!`, task });
+      return res.status(201).json({ message: `Task created!`, task });
     }
   } catch (error) {
     res.status(500).json({
