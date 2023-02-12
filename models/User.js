@@ -41,10 +41,11 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
-    taskId: {
-      type: mongoose.Types.ObjectId,
-      ref: "Task",
-    },
+    taskId: [
+      {
+        type: String,
+      },
+    ],
   },
   { timestamps: true }
 );

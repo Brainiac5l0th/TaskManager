@@ -16,6 +16,8 @@ const bcrypt = require("bcrypt");
 const userController = {};
 
 //model structuring
+
+//view all users
 userController.viewUser = async (req, res) => {
   try {
     const users = await User.find();
@@ -30,9 +32,9 @@ userController.viewUser = async (req, res) => {
     if (error.status) {
       return res
         .status(error.status)
-        .json({ error: true, message: error.message });
+        .json({ success: false, message: error.message });
     }
-    res.status(500).json({ error: true, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 //create new user
@@ -81,9 +83,100 @@ userController.createUser = async (req, res) => {
     if (error.status) {
       return res
         .status(error.status)
-        .json({ error: true, message: error.message });
+        .json({ success: false, message: error.message });
     }
-    res.status(500).json({ error: true, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+//update a user
+userController.updateUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { fullname, password, role, active } = req.body;
+    if (fullname || role || typeof active === "boolean") {
+      const user = await User.findOne({ _id: id });
+      if (!user) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Something Wrong!" });
+      }
+      if (fullname) user.fullname = fullname;
+      if (role) user.role = role;
+      if (typeof active === "boolean") user.active = active;
+
+      //hash the password again
+      if (password) {
+        const hashPassword = await bcrypt.hash(password, 10);
+        user.password = hashPassword;
+      }
+      await user.save();
+      res.status(200).json({ success: true, message: "User updated!" });
+    } else {
+      return res
+        .status(400)
+        .json({ success: false, message: "All fields are Required!" });
+    }
+  } catch (error) {
+    if (error.status) {
+      return res
+        .status(error.status)
+        .json({ success: false, message: error.message });
+    }
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+//get information of a @specific_user using id
+userController.singleUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Fields required!" });
+    }
+    const foundUser = await User.findOne({ id }).select("-__v -password");
+    if (!foundUser) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Something Wrong" });
+    }
+    res.status(200).json({ success: true, user_info: foundUser });
+  } catch (error) {
+    if (error.status) {
+      return res
+        .status(error.status)
+        .json({ success: false, message: error.message });
+    }
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+//delete a user
+userController.deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const findUser = await User.findOne({ _id: id });
+    if (!findUser) {
+      return res
+        .status(400)
+        .json({ success: false, message: "invalid request!" });
+    }
+    if (findUser?.taskId.length) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User has task assigned!" });
+    }
+    await User.deleteOne({ _id: id });
+    res.status(200).json({ success: true, message: "Deleted successfully!" });
+  } catch (error) {
+    if (error.status) {
+      return res
+        .status(error.status)
+        .json({ success: false, message: error.message });
+    }
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
