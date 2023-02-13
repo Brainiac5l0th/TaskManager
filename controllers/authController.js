@@ -18,6 +18,7 @@ const User = require("../models/User");
 const authController = {};
 
 //model structuring
+//login functionality
 authController.logIn = async (req, res) => {
   try {
     const { email = "", phone = "", password } = req.body;
@@ -47,7 +48,7 @@ authController.logIn = async (req, res) => {
     );
 
     //set refreshtoken into cookie
-    res.cookie("jwtrefresh", refreshToken, {
+    res.cookie("jwt", refreshToken, {
       http: true,
       secure: true,
       sameSite: "None",
@@ -58,6 +59,63 @@ authController.logIn = async (req, res) => {
   } catch (error) {
     res.status(401).json({ message: error.message });
   }
+};
+
+//to generate accesstoken again
+authController.refresh = async (req, res) => {
+  try {
+    const cookies = req.cookies;
+    if (!cookies.jwt) {
+      return res.status(401).json({ message: "Authentication Failure!" });
+    }
+    jwt.verify(
+      cookies.jwt,
+      process.env.REFRESH_TOKEN_SECRET,
+      async (err, data) => {
+        if (err) {
+          return res.status(401).json({ message: "Authentication Failure!" });
+        }
+        const { email } = data;
+        const user = await User.findOne({ email });
+
+        //new access token
+        const newAccessToken = jwt.sign(
+          {
+            userInfo: {
+              email,
+              role: user.role,
+            },
+          },
+          process.env.ACCESS_TOKEN_SECRET,
+          { expiresIn: "5m" }
+        );
+        return res.status(200).json({access_token: newAccessToken});
+      }
+    );
+  } catch (error) {
+    res.status(401).json({ message: "Authentication Failure!" });
+  }
+};
+
+//logout functionality
+authController.logOut = (req, res) => {
+  const cookies = req.cookies;
+  if (!cookies.jwt) {
+    return res
+      .status(204)
+      .json({ success: false, message: "No content inside." });
+  }
+  jwt.verify(cookies.jwt, process.env.REFRESH_TOKEN_SECRET, (err, data) => {
+    if (err) {
+      return res.status(400).json({ success: false });
+    } else {
+      //clear cookie for jwt refresh
+      res.clearCookie("jwt", { secure: true, http: true, sameSite: "None" });
+      return res
+        .status(200)
+        .json({ success: true, message: "Cookie cleared!" });
+    }
+  });
 };
 
 //export model
