@@ -38,6 +38,33 @@ userController.viewUser = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+//get information of a @specific_user using id
+userController.singleUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Fields required!" });
+    }
+    const foundUser = await User.findOne({ _id: id }).select("-__v -password");
+    if (!foundUser) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Something Wrong" });
+    }
+    res.status(200).json({ success: true, user_info: foundUser });
+  } catch (error) {
+    if (error.status) {
+      return res
+        .status(error.status)
+        .json({ success: false, message: error.message });
+    }
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 //create new user
 userController.createUser = async (req, res) => {
   try {
@@ -95,55 +122,27 @@ userController.updateUser = async (req, res) => {
   try {
     const { id } = req.params;
     const { fullname, password, role, active } = req.body;
-    if (fullname || role || typeof active === "boolean") {
-      const user = await User.findOne({ _id: id });
-      if (!user) {
-        return res
-          .status(400)
-          .json({ success: false, message: "Something Wrong!" });
-      }
-      if (fullname) user.fullname = fullname;
-      if (role) user.role = role;
-      if (typeof active === "boolean") user.active = active;
-
+    if (!fullname && !role && !password && typeof active !== "boolean") {
+      return res
+        .status(400)
+        .json({ success: false, message: "Field Required!" });
+    }
+    const user = await User.findOne({ _id: id });
+    if (!user) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Something Wrong!" });
+    }
+    if (fullname) user.fullname = fullname;
+    if (role) user.role = role;
+    if (typeof active === "boolean") user.active = active;
+    if (password) {
       //hash the password again
-      if (password) {
-        const hashPassword = await bcrypt.hash(password, 10);
-        user.password = hashPassword;
-      }
-      await user.save();
-      res.status(200).json({ success: true, message: "User updated!" });
-    } else {
-      return res
-        .status(400)
-        .json({ success: false, message: "All fields are Required!" });
+      const hashPassword = await bcrypt.hash(password, 10);
+      user.password = hashPassword;
     }
-  } catch (error) {
-    if (error.status) {
-      return res
-        .status(error.status)
-        .json({ success: false, message: error.message });
-    }
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-//get information of a @specific_user using id
-userController.singleUser = async (req, res) => {
-  try {
-    const { id } = req.params;
-    if (!id) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Fields required!" });
-    }
-    const foundUser = await User.findOne({ id }).select("-__v -password");
-    if (!foundUser) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Something Wrong" });
-    }
-    res.status(200).json({ success: true, user_info: foundUser });
+    await user.save();
+    res.status(200).json({ success: true, message: "User updated!" });
   } catch (error) {
     if (error.status) {
       return res

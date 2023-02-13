@@ -23,11 +23,11 @@ const userRouter = express.Router();
 //@get all users
 userRouter.get("/", viewUser);
 
-//@get @specific_user
-userRouter.get("/:id", singleUser);
-
 //@create new user
 userRouter.post("/new", createUser);
+
+//@get @specific_user
+userRouter.get("/:id", singleUser);
 
 //@update a user
 userRouter.patch("/:id", updateUser);

@@ -8,10 +8,13 @@
  *
  *
  */
+//dependencies
+const express = require("express");
 
- const express = require("express");
- 
- const authRouter = express.Router();
- 
- module.exports = authRouter;
- 
+const {logIn} = require("../controllers/authController");
+//model scaffolding
+const authRouter = express.Router();
+
+authRouter.post("/", logIn);
+
+module.exports = authRouter;
