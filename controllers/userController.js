@@ -10,6 +10,7 @@
  */
 
 const User = require("../models/User");
+const Task = require("../models/Task");
 const bcrypt = require("bcrypt");
 
 //model scaffolding
@@ -163,7 +164,8 @@ userController.deleteUser = async (req, res) => {
         .status(400)
         .json({ success: false, message: "invalid request!" });
     }
-    if (findUser?.taskId.length) {
+    const task = await Task.findOne({ userId: id });
+    if (task) {
       return res
         .status(400)
         .json({ success: false, message: "User has task assigned!" });
