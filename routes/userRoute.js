@@ -17,8 +17,11 @@ const {
   updateUser,
   deleteUser,
 } = require("../controllers/userController");
+const { checkLogin } = require("../middleware/verifyJWT");
 
+//model scaffolding
 const userRouter = express.Router();
+userRouter.use(checkLogin);
 
 //@get all users
 userRouter.get("/", viewUser);
@@ -27,7 +30,7 @@ userRouter.get("/", viewUser);
 userRouter.post("/new", createUser);
 
 //@get @specific_user
-userRouter.get("/:id", singleUser);
+userRouter.get("/:id",singleUser);
 
 //@update a user
 userRouter.patch("/:id", updateUser);
